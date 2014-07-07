@@ -1,0 +1,19 @@
+{
+  "name": "em",
+  "version": "0.0.0",
+  "description": "Enterprise page framework",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hadesdu/em"
+  },
+  "keywords": [
+    "page",
+    "framework"
+  ],
+  "author": "hades",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/hadesdu/em/issues"
+  },
+  "homepage": "https://github.com/hadesdu/em"
+}
