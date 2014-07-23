@@ -287,6 +287,10 @@ define(function () {
         return Object.prototype.toString.call(arr) === '[object Array]';
     };
 
+    util.isFunction = function(func) {
+        return Object.prototype.toString.call(func) === '[object Function]';
+    }
+
     util.keys = function(obj) {
         var keys = [];
         var obj = obj || {};
