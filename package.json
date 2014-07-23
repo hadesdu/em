@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/hadesdu/em/issues"
   },
+  "dependencies": {
+    "mini-event": "1.x",
+    "etpl": ">=2.0.8"
+  },
   "homepage": "https://github.com/hadesdu/em"
 }

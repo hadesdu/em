@@ -77,12 +77,14 @@ define(function(require) {
         var query = util.mix(
             {},
             _initQuery,
+            _defaultQuery,
             hash.getQuery()
         );
 
         var historyQuery = util.mix(
             {},
             _initQuery,
+            _defaultQuery,
             hash.parse(e.referrer)
         );
 

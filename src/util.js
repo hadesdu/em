@@ -283,5 +283,22 @@ define(function () {
         return -1;
     };
 
+    util.isArray = function(arr) {
+        return Object.prototype.toString.call(arr) === '[object Array]';
+    };
+
+    util.keys = function(obj) {
+        var keys = [];
+        var obj = obj || {};
+
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                keys.push(key);
+            }
+        }
+
+        return keys;
+    }
+
     return util;
 });
