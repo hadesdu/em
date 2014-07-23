@@ -169,11 +169,6 @@ define(function (require) {
                     { url: url, referrer: referrer }
                 );
             }
-
-            require('./events').fire(
-                'redirect', 
-                { url: url, referrer: referrer }
-            );
         }
     };
 
@@ -186,6 +181,6 @@ define(function (require) {
         }
     };
 
-    require('./Observable').enable(locator);
+    require('mini-event/EventTarget').enable(locator);
     return locator;
 });
