@@ -1,414 +1,438 @@
 /**
- * ER (Enterprise RIA)
- * Copyright 2013 Baidu Inc. All rights reserved.
- *
- * @ignore
  * @file AJAX相关方法
- * @author otakustay
+ * @author hades(denghongqi@baidu.com)
  */
-define(
-    function (require) {
-        var util = require('./util');
+define(function (require) {
+    var util = require('./util');
 
-        var TIMESTAMP_PARAM_KEY = '_';
+    /**
+     * ajax时间戳参数名
+     *
+     * @type {string}
+     */
+    var TIMESTAMP_PARAM_KEY = '_';
 
-        function serializeArray(prefix, array) {
-            var encodedKey = prefix ? encodeURIComponent(prefix) : '';
-            var encoded = [];
-            for (var i = 0; i < array.length; i++) {
-                var item = array[i];
-                encoded[i] = this.serializeData('', item);
-            }
-            return encodedKey
-                ? encodedKey + '=' + encoded.join(',')
-                : encoded.join(',');
+    /**
+     * 将数组序列化成字符串
+     *
+     * @param {string} prefix 序列化后的前缀
+     * @param {Array} array 要序列化的数组
+     * @return {string} 序列化后的字符串
+     */
+    function serializeArray(prefix, array) {
+        var encodedKey = prefix ? encodeURIComponent(prefix) : '';
+        var encoded = [];
+        for (var i = 0; i < array.length; i++) {
+            var item = array[i];
+            encoded[i] = this.serializeData('', item);
+        }
+        return (encodedKey
+            ? encodedKey + '=' + encoded.join(',')
+            : encoded.join(',')
+        );
+    }
+
+    /**
+     * 将Object序列化成字符串
+     *
+     * @param {string} prefix 序列化后的前缀
+     * @param {Object} data 要序列化的数组
+     * @return {string} 序列化后的字符串
+     */
+    function serializeData(prefix, data) {
+        if (arguments.length === 1) {
+            data = prefix;
+            prefix = '';
         }
 
-        function serializeData(prefix, data) {
-            if (arguments.length === 1) {
-                data = prefix;
-                prefix = '';
-            }
-
-            if (data == null) {
-                data = '';
-            }
-            var getKey = this.serializeData.getKey;
-            var encodedKey = prefix ? encodeURIComponent(prefix) : '';
-
-            var type = Object.prototype.toString.call(data);
-            switch (type) {
-                case '[object Array]':
-                    return this.serializeArray(prefix, data);
-                case '[object Object]':
-                    var result = [];
-                    for (var name in data) {
-                        var propertyKey = getKey(name, prefix);
-                        var propertyValue = this.serializeData(propertyKey, data[name]);
-                        result.push(propertyValue);
-                    }
-                    return result.join('&');
-                default:
-                    return encodedKey
-                        ? encodedKey + '=' + encodeURIComponent(data)
-                        : encodeURIComponent(data);
-            }
+        if (data == null) {
+            data = '';
         }
+        var getKey = this.serializeData.getKey;
+        var encodedKey = prefix ? encodeURIComponent(prefix) : '';
 
-        serializeData.getKey = function (propertyName, parentKey) {
-            return parentKey ? parentKey + '.' + propertyName : propertyName;
+        var type = Object.prototype.toString.call(data);
+        switch (type) {
+            case '[object Array]':
+                return this.serializeArray(prefix, data);
+            case '[object Object]':
+                var result = [];
+                for (var name in data) {
+                    var propertyKey = getKey(name, prefix);
+                    var propertyValue = this.serializeData(propertyKey, data[name]);
+                    result.push(propertyValue);
+                }
+                return result.join('&');
+            default:
+                return (encodedKey
+                    ? encodedKey + '=' + encodeURIComponent(data)
+                    : encodeURIComponent(data)
+                );
+        }
+    }
+
+    /**
+     * 生成序列化属性的key
+     *
+     * @param {string} propertyName
+     * @param {string} parentKey
+     * @return {string}
+     */
+    serializeData.getKey = function (propertyName, parentKey) {
+        return parentKey ? parentKey + '.' + propertyName : propertyName;
+    };
+
+    /**
+     * Ajax类
+     *
+     * 通过`require('er/ajax').Ajax`访问该类构造函数，其中`require('er/ajax')`是该类的全局实例
+     *
+     * @extends mini-event.EventTarget
+     * @constructor
+     */
+    function Ajax() {
+        /**
+         * AJAX钩子
+         *
+         * @type {meta.AjaxHook}
+         */
+        this.hooks = {
+            serializeData: serializeData,
+            serializeArray: serializeArray
         };
 
         /**
-         * Ajax类
+         * AJAX配置
          *
-         * 通过`require('er/ajax').Ajax`访问该类构造函数，其中`require('er/ajax')`是该类的全局实例
-         *
-         * @extends mini-event.EventTarget
-         * @constructor
+         * @type {meta.AjaxOption}
          */
-        function Ajax() {
-            /**
-             * AJAX钩子
-             *
-             * @type {meta.AjaxHook}
-             */
-            this.hooks = {
-                serializeData: serializeData,
-                serializeArray: serializeArray
-            };
+        this.config = {
+            cache: false,
+            timeout: 0,
+            charset: ''
+        };
+    }
 
-            /**
-             * AJAX配置
-             *
-             * @type {meta.AjaxOption}
-             */
-            this.config = {
-                cache: false,
-                timeout: 0,
-                charset: ''
-            };
+    util.inherits(Ajax, require('mini-event/EventTarget'));
+
+    /**
+     * 发起`XMLHttpRequest`请求
+     *
+     * @param {meta.AjaxOption} options 相关配置
+     * @return {meta.FakeXHR}
+     */
+    Ajax.prototype.request = function (options) {
+        if (typeof this.hooks.beforeExecute === 'function') {
+            this.hooks.beforeExecute(options);
         }
 
-        util.inherits(Ajax, require('mini-event/EventTarget'));
+        var assert = require('./assert');
+        assert.hasProperty(options, 'url', 'url property is required');
 
-        /**
-         * 发起`XMLHttpRequest`请求
-         *
-         * @param {meta.AjaxOption} options 相关配置
-         * @return {meta.FakeXHR}
-         */
-        Ajax.prototype.request = function (options) {
-            if (typeof this.hooks.beforeExecute === 'function') {
-                this.hooks.beforeExecute(options);
+        var defaults = {
+            method: 'POST',
+            data: {},
+            cache: this.config.cache,
+            timeout: this.config.timeout,
+            charset: this.config.charset
+        };
+        var util = require('./util');
+        options = util.mix(defaults, options);
+
+        var Deferred = require('./Deferred');
+        var requesting = new Deferred();
+
+        if (typeof this.hooks.beforeCreate === 'function') {
+            var canceled = this.hooks.beforeCreate(options, requesting);
+            if (canceled === true) {
+                var fakeXHR = requesting.promise;
+                fakeXHR.abort = function () {};
+                fakeXHR.setRequestHeader = function () {};
+                return fakeXHR;
             }
+        }
 
-            var assert = require('./assert');
-            assert.hasProperty(options, 'url', 'url property is required');
+        var xhr = window.XMLHttpRequest
+            ? new XMLHttpRequest()
+            : new window.ActiveXObject('Microsoft.XMLHTTP');
 
-            var defaults = {
-                method: 'POST',
-                data: {},
-                cache: this.config.cache,
-                timeout: this.config.timeout,
-                charset: this.config.charset
-            };
-            var util = require('./util');
-            options = util.mix(defaults, options);
-
-            var Deferred = require('./Deferred');
-            var requesting = new Deferred();
-
-            if (typeof this.hooks.beforeCreate === 'function') {
-                var canceled = this.hooks.beforeCreate(options, requesting);
-                if (canceled === true) {
-                    var fakeXHR = requesting.promise;
-                    fakeXHR.abort = function () {};
-                    fakeXHR.setRequestHeader = function () {};
-                    return fakeXHR;
+        var fakeXHR = requesting.promise;
+        var xhrWrapper = {
+            abort: function () {
+                // 有些浏览器`abort()`就会把`readyState`变成4，
+                // 这就会导致进入处理函数变成**resolved**状态，
+                // 因此事先去掉处理函数，然后直接进入**rejected**状态
+                xhr.onreadystatechange = null;
+                try {
+                    xhr.abort();
                 }
+                catch (ex) {
+                }
+                if (!fakeXHR.status) {
+                    fakeXHR.status = 0;
+                }
+                fakeXHR.readyState = xhr.readyState;
+                fakeXHR.responseText = '';
+                fakeXHR.responseXML = '';
+                requesting.reject(fakeXHR);
+            },
+            setRequestHeader: function (name, value) {
+                xhr.setRequestHeader(name, value);
+            },
+            getAllResponseHeaders: function () {
+                return xhr.getAllResponseHeaders();
+            },
+            getResponseHeader: function (name) {
+                return xhr.getResponseHeader(name);
             }
+        };
 
-            var xhr = window.XMLHttpRequest
-                ? new XMLHttpRequest()
-                : new window.ActiveXObject('Microsoft.XMLHTTP');
+        var EventTarget = require('mini-event/EventTarget');
 
-            var fakeXHR = requesting.promise;
-            var xhrWrapper = {
-                abort: function () {
-                    // 有些浏览器`abort()`就会把`readyState`变成4，
-                    // 这就会导致进入处理函数变成**resolved**状态，
-                    // 因此事先去掉处理函数，然后直接进入**rejected**状态
-                    xhr.onreadystatechange = null;
+        util.mix(xhrWrapper, new EventTarget(), EventTarget.prototype);
+        util.mix(fakeXHR, xhrWrapper);
+        
+        fakeXHR.then(
+            function () {
+                /**
+                 * @event done
+                 *
+                 * 任意一个请求成功时触发
+                 *
+                 * @param {meta.AjaxOption} options 请求的配置信息
+                 * @param {meta.FakeXHR} xhr 请求对象
+                 */
+                this.fire(
+                    'done',
+                    { xhr: fakeXHR, options: options }
+                );
+            },
+            function () {
+                /**
+                 * @event fail
+                 *
+                 * 任意一个请求失败时触发
+                 *
+                 * @param {meta.FakeXHR} xhr 请求对象
+                 * @param {meta.AjaxOption} options 请求的配置信息
+                 */
+                this.fire(
+                    'fail',
+                    { xhr: fakeXHR, options: options }
+                );
+            }
+        );
+
+        var processRequestStatus = function () {
+            if (xhr.readyState === 4) {
+                var status = fakeXHR.status || xhr.status;
+                // IE9会把204状态码变成1223
+                if (status === 1223) {
+                    status = 204;
+                }
+
+                fakeXHR.status = fakeXHR.status || status;
+                fakeXHR.readyState = xhr.readyState;
+                fakeXHR.responseText = xhr.responseText;
+                fakeXHR.responseXML = xhr.responseXML;
+
+                if (typeof this.hooks.afterReceive === 'function') {
+                    this.hooks.afterReceive(fakeXHR, options);
+                }
+
+                // 如果请求不成功，也就不用再分解数据了，直接丢回去就好
+                if (status < 200 || (status >= 300 && status !== 304)) {
+                    requesting.reject(fakeXHR);
+                    return;
+                }
+
+                var data = xhr.responseText;
+                if (options.dataType === 'json') {
                     try {
-                        xhr.abort();
+                        data = util.parseJSON(data);
                     }
                     catch (ex) {
-                    }
-                    if (!fakeXHR.status) {
-                        fakeXHR.status = 0;
-                    }
-                    fakeXHR.readyState = xhr.readyState;
-                    fakeXHR.responseText = '';
-                    fakeXHR.responseXML = '';
-                    requesting.reject(fakeXHR);
-                },
-                setRequestHeader: function (name, value) {
-                    xhr.setRequestHeader(name, value);
-                },
-                getAllResponseHeaders: function () {
-                    return xhr.getAllResponseHeaders();
-                },
-                getResponseHeader: function (name) {
-                    return xhr.getResponseHeader(name);
-                }
-            };
-
-            var EventTarget = require('mini-event/EventTarget');
-
-            util.mix(xhrWrapper, new EventTarget(), EventTarget.prototype);
-            util.mix(fakeXHR, xhrWrapper);
-            
-            fakeXHR.then(
-                function () {
-                    /**
-                     * @event done
-                     *
-                     * 任意一个请求成功时触发
-                     *
-                     * @param {meta.AjaxOption} options 请求的配置信息
-                     * @param {meta.FakeXHR} xhr 请求对象
-                     */
-                    this.fire(
-                        'done',
-                        { xhr: fakeXHR, options: options }
-                    );
-                },
-                function () {
-                    /**
-                     * @event fail
-                     *
-                     * 任意一个请求失败时触发
-                     *
-                     * @param {meta.FakeXHR} xhr 请求对象
-                     * @param {meta.AjaxOption} options 请求的配置信息
-                     */
-                    this.fire(
-                        'fail',
-                        { xhr: fakeXHR, options: options }
-                    );
-                }
-            );
-
-            var processRequestStatus = function () {
-                if (xhr.readyState === 4) {
-                    var status = fakeXHR.status || xhr.status;
-                    // IE9会把204状态码变成1223
-                    if (status === 1223) {
-                        status = 204;
-                    }
-
-                    fakeXHR.status = fakeXHR.status || status;
-                    fakeXHR.readyState = xhr.readyState;
-                    fakeXHR.responseText = xhr.responseText;
-                    fakeXHR.responseXML = xhr.responseXML;
-
-                    if (typeof this.hooks.afterReceive === 'function') {
-                        this.hooks.afterReceive(fakeXHR, options);
-                    }
-
-                    // 如果请求不成功，也就不用再分解数据了，直接丢回去就好
-                    if (status < 200 || (status >= 300 && status !== 304)) {
+                        // 服务器返回的数据不符合JSON格式，认为请求失败
+                        fakeXHR.error = ex;
                         requesting.reject(fakeXHR);
                         return;
                     }
-
-                    var data = xhr.responseText;
-                    if (options.dataType === 'json') {
-                        try {
-                            data = util.parseJSON(data);
-                        }
-                        catch (ex) {
-                            // 服务器返回的数据不符合JSON格式，认为请求失败
-                            fakeXHR.error = ex;
-                            requesting.reject(fakeXHR);
-                            return;
-                        }
-                    }
-
-                    if (typeof this.hooks.afterParse === 'function') {
-                        try {
-                            data = this.hooks.afterParse(data, fakeXHR, options);
-                        }
-                        catch (ex) {
-                            fakeXHR.error = ex;
-                            requesting.reject(fakeXHR);
-                            return;
-                        }
-                    }
-
-                    // 数据处理成功后，进行回调
-                    requesting.resolve(data);
                 }
-            };
 
-            xhr.onreadystatechange = util.bind(processRequestStatus, this);
-
-            var method = options.method.toUpperCase();
-            var data = {};
-            if (method === 'GET') {
-                util.mix(data, options.data);
-            }
-            if (options.cache === false) {
-                data[TIMESTAMP_PARAM_KEY] = +new Date();
-            }
-            var query = this.hooks.serializeData('', data, 'application/x-www-form-urlencoded');
-            var url = options.url;
-            if (query) {
-                var delimiter = url.indexOf('?') >= 0 ? '&' : '?';
-                url += delimiter + query;
-            }
-
-            xhr.open(method, url, true);
-
-            if (typeof this.hooks.beforeSend === 'function') {
-                this.hooks.beforeSend(fakeXHR, options);
-            }
-
-            if (method === 'GET') {
-                xhr.send();
-            }
-            else {
-                var contentType = options.contentType || 'application/x-www-form-urlencoded';
-                var query = this.hooks.serializeData('', options.data, contentType, fakeXHR);
-                if (options.charset) {
-                    contentType += ';charset=' + options.charset;
+                if (typeof this.hooks.afterParse === 'function') {
+                    try {
+                        data = this.hooks.afterParse(data, fakeXHR, options);
+                    }
+                    catch (ex) {
+                        fakeXHR.error = ex;
+                        requesting.reject(fakeXHR);
+                        return;
+                    }
                 }
-                xhr.setRequestHeader('Content-Type', contentType);
-                xhr.send(query);
+
+                // 数据处理成功后，进行回调
+                requesting.resolve(data);
             }
+        };
 
-            if (options.timeout > 0) {
-                var notifyTimeout = function () {
-                    /**
-                     * @event timeout
-                     *
-                     * 任意一个请求成功时触发，
-                     * 在此事件后会再触发一次{@link Ajax#fail}事件
-                     *
-                     * @param {meta.FakeXHR} xhr 请求对象
-                     * @param {meta.AjaxOption} options 请求的配置信息
-                     */
-                    this.fire(
-                        'timeout',
-                        { xhr: fakeXHR, options: options }
-                    );
-                    fakeXHR.status = 408; // HTTP 408: Request Timeout
-                    fakeXHR.abort();
-                };
-                var tick = setTimeout(util.bind(notifyTimeout, this), options.timeout);
-                fakeXHR.ensure(function () { clearTimeout(tick); });
+        xhr.onreadystatechange = util.bind(processRequestStatus, this);
+
+        var method = options.method.toUpperCase();
+        var data = {};
+        if (method === 'GET') {
+            util.mix(data, options.data);
+        }
+        if (options.cache === false) {
+            data[TIMESTAMP_PARAM_KEY] = +new Date();
+        }
+        var query = this.hooks.serializeData('', data, 'application/x-www-form-urlencoded');
+        var url = options.url;
+        if (query) {
+            var delimiter = url.indexOf('?') >= 0 ? '&' : '?';
+            url += delimiter + query;
+        }
+
+        xhr.open(method, url, true);
+
+        if (typeof this.hooks.beforeSend === 'function') {
+            this.hooks.beforeSend(fakeXHR, options);
+        }
+
+        if (method === 'GET') {
+            xhr.send();
+        }
+        else {
+            var contentType = options.contentType || 'application/x-www-form-urlencoded';
+            var query = this.hooks.serializeData('', options.data, contentType, fakeXHR);
+            if (options.charset) {
+                contentType += ';charset=' + options.charset;
             }
+            xhr.setRequestHeader('Content-Type', contentType);
+            xhr.send(query);
+        }
 
-            return fakeXHR;
-        };
-
-        /**
-         * 发起一个`GET`请求
-         *
-         * @param {string} url 请求的地址
-         * @param {Object} [data] 请求的数据
-         * @param {boolean} [cache] 决定是否允许缓存
-         * @return {meta.FakeXHR}
-         */
-        Ajax.prototype.get = function (url, data, cache) {
-            var options = {
-                method: 'GET',
-                url: url,
-                data: data,
-                cache: cache || this.config.cache
+        if (options.timeout > 0) {
+            var notifyTimeout = function () {
+                /**
+                 * @event timeout
+                 *
+                 * 任意一个请求成功时触发，
+                 * 在此事件后会再触发一次{@link Ajax#fail}事件
+                 *
+                 * @param {meta.FakeXHR} xhr 请求对象
+                 * @param {meta.AjaxOption} options 请求的配置信息
+                 */
+                this.fire(
+                    'timeout',
+                    { xhr: fakeXHR, options: options }
+                );
+                fakeXHR.status = 408; // HTTP 408: Request Timeout
+                fakeXHR.abort();
             };
-            return this.request(options);
+            var tick = setTimeout(util.bind(notifyTimeout, this), options.timeout);
+            fakeXHR.ensure(function () {
+                clearTimeout(tick);
+            });
+        }
+
+        return fakeXHR;
+    };
+
+    /**
+     * 发起一个`GET`请求
+     *
+     * @param {string} url 请求的地址
+     * @param {Object} [data] 请求的数据
+     * @param {boolean} [cache] 决定是否允许缓存
+     * @return {meta.FakeXHR}
+     */
+    Ajax.prototype.get = function (url, data, cache) {
+        var options = {
+            method: 'GET',
+            url: url,
+            data: data,
+            cache: cache || this.config.cache
+        };
+        return this.request(options);
+    };
+
+    /**
+     * 发起一个`GET`请求并获取JSON数据
+     *
+     * @param {string} url 请求的地址
+     * @param {Object} [data] 请求的数据
+     * @param {boolean} [cache] 决定是否允许缓存
+     * @return {meta.FakeXHR}
+     */
+    Ajax.prototype.getJSON = function (url, data, cache) {
+        var options = {
+            method: 'GET',
+            url: url,
+            data: data,
+            dataType: 'json',
+            cache: cache || this.config.cache
+        };
+        return this.request(options);
+    };
+
+
+    /**
+     * 发起一个`POST`请求
+     *
+     * @param {string} url 请求的地址
+     * @param {Object} [data] 请求的数据
+     * @param {string} [dataType="json"] 指定响应的数据格式
+     * @return {meta.FakeXHR}
+     */
+    Ajax.prototype.post = function (url, data, dataType) {
+        var options = {
+            method: 'POST',
+            url: url,
+            data: data,
+            dataType: dataType || 'json'
+        };
+        return this.request(options);
+    };
+
+    /**
+     * 发送一个日志请求，该请求只负责发出，不负责保证送达，且不支持回调函数
+     *
+     * @param {string} url 发送的目标URL
+     * @param {Object} [data] 额外添加的参数
+     */
+    Ajax.prototype.log = function (url, data) {
+        var img = new Image();
+        var pool = window.ER_LOG_POOL || (window.ER_LOG_POOL = {});
+        var id = +new Date();
+        pool[id] = img;
+
+        img.onload = img.onerror = img.onabort = function () {
+            // 如果这个img很不幸正好加载了一个存在的资源，又是个gif动画，
+            // 则在gif动画播放过程中，img会多次触发onload，因此一定要清空
+            img.onload = img.onerror = img.onabort = null;
+
+            pool[id] = null;
+
+            // 下面这句非常重要，
+            // new Image创建的是DOM，
+            // DOM的事件中形成闭包环引用DOM是典型的内存泄露，
+            // 因此这里一定要置为null
+            img = null;
         };
 
-        /**
-         * 发起一个`GET`请求并获取JSON数据
-         *
-         * @param {string} url 请求的地址
-         * @param {Object} [data] 请求的数据
-         * @param {boolean} [cache] 决定是否允许缓存
-         * @return {meta.FakeXHR}
-         */
-        Ajax.prototype.getJSON = function (url, data, cache) {
-            var options = {
-                method: 'GET',
-                url: url,
-                data: data,
-                dataType: 'json',
-                cache: cache || this.config.cache
-            };
-            return this.request(options);
-        };
+        var query = this.hooks.serializeData('', data, 'application/x-www-form-urlencoded');
+        if (query) {
+            var delimiter = url.indexOf('?') >= 0 ? ':' : '?';
+            url += delimiter + query;
+        }
+        // 一定要在注册了事件之后再设置src，
+        // 不然如果图片是读缓存的话，会错过事件处理，
+        // 最后，对于url最好是添加客户端时间来防止缓存，
+        // 同时服务器也配合一下传递`Cache-Control: no-cache;`
+        img.src = url;
+    };
 
-
-        /**
-         * 发起一个`POST`请求
-         *
-         * @param {string} url 请求的地址
-         * @param {Object} [data] 请求的数据
-         * @param {string} [dataType="json"] 指定响应的数据格式
-         * @return {meta.FakeXHR}
-         */
-        Ajax.prototype.post = function (url, data, dataType) {
-            var options = {
-                method: 'POST',
-                url: url,
-                data: data,
-                dataType: dataType || 'json'
-            };
-            return this.request(options);
-        };
-
-        /**
-         * 发送一个日志请求，该请求只负责发出，不负责保证送达，且不支持回调函数
-         *
-         * @param {string} url 发送的目标URL
-         * @param {Object} [data] 额外添加的参数
-         */
-        Ajax.prototype.log = function (url, data) {
-            var img = new Image();
-            var pool = window.ER_LOG_POOL || (window.ER_LOG_POOL = {});
-            var id = +new Date();
-            pool[id] = img;
-
-            img.onload = img.onerror = img.onabort = function () {
-                // 如果这个img很不幸正好加载了一个存在的资源，又是个gif动画，
-                // 则在gif动画播放过程中，img会多次触发onload，因此一定要清空
-                img.onload = img.onerror = img.onabort = null;
-
-                pool[id] = null;
-
-                // 下面这句非常重要，
-                // new Image创建的是DOM，
-                // DOM的事件中形成闭包环引用DOM是典型的内存泄露，
-                // 因此这里一定要置为null
-                img = null;
-            };
-
-            var query = this.hooks.serializeData('', data, 'application/x-www-form-urlencoded');
-            if (query) {
-                var delimiter = url.indexOf('?') >= 0 ? ':' : '?';
-                url += delimiter + query;
-            }
-            // 一定要在注册了事件之后再设置src，
-            // 不然如果图片是读缓存的话，会错过事件处理，
-            // 最后，对于url最好是添加客户端时间来防止缓存，
-            // 同时服务器也配合一下传递`Cache-Control: no-cache;`
-            img.src = url;
-        };
-
-        var instance = new Ajax();
-        instance.Ajax = Ajax;
-        return instance;
-    }
-);
+    var instance = new Ajax();
+    instance.Ajax = Ajax;
+    return instance;
+});

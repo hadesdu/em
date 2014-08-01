@@ -5,6 +5,7 @@
 define(function(require) {
 
     var locator = require('./locator');
+    var delegate = require('./delegate');
 
     /**
      * 启动框架
@@ -13,10 +14,22 @@ define(function(require) {
      */
     function start() {
         locator.start();
+        delegate.start();
+    }
+
+    /**
+     * 停止框架
+     *
+     * @public
+     */
+    function stop() {
+        locator.stop();
+        delegate.stop();
     }
 
     return {
         version: '0.1.0',
-        start: start
+        start: start,
+        stop: stop
     };
 });

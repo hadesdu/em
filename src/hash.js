@@ -70,7 +70,7 @@ define(function(require) {
             }
         }
         return query;
-    }
+    };
 
     /**
      * 将参数对象序列化成hash
@@ -99,6 +99,8 @@ define(function(require) {
 
     /**
      * 获取当前hash的参数对象
+     * 
+     * @return {Object} 当前hash的参数对象
      */
     hash.getQuery = function() {
         return this.parse(window.location.hash);

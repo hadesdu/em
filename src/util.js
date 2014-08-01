@@ -1,11 +1,14 @@
 /**
- * ER (Enterprise RIA)
- * Copyright 2013 Baidu Inc. All rights reserved.
- * 
- * @file 杂而乱的工具对象
- * @author otakustay, errorrik
+ * @file util工具对象
+ * @author hades(denghongqi@baidu.com)
  */
 define(function () {
+    
+    /**
+     * 当前的时间戳
+     *
+     * @type {number}
+     */
     var now = +new Date();
 
     /**
@@ -32,7 +35,7 @@ define(function () {
      * 功能降级处理
      * 
      * @inner
-     * @param {boolean} conditioin feature 可用的测试条件
+     * @param {boolean} condition feature 可用的测试条件
      * @param {Function} implement feature 不可用时的降级实现
      * @param {Function} feature 可用的特性方法
      * 
@@ -183,6 +186,11 @@ define(function () {
         }
     };
 
+    /**
+     * 用于判断空白字符的正则表达式
+     *
+     * @type {RegExp}
+     */
     var whitespace = /(^[\s\t\xa0\u3000]+)|([\u3000\xa0\s\t]+$)/g;
 
     /**
@@ -198,7 +206,7 @@ define(function () {
     /**
      * 对字符中进行HTML编码
      *
-     * @param {string} 源字符串
+     * @param {string} source 源字符串
      * @param {string} HTML编码后的字符串
      */
     util.encodeHTML = function (source) {
@@ -265,6 +273,8 @@ define(function () {
     /**
      * 判断item是否在arr中
      *
+     * @param {Array} arr
+     * @param {*} item
      * @return {number}
      */
     util.inArray = function(arr, item) {
@@ -283,14 +293,64 @@ define(function () {
         return -1;
     };
 
+    /**
+     * 判断参数类型是否为Array
+     *
+     * @param {*} arr
+     * @return {boolean} 参数为Array类型则返回true，否则为false
+     */
     util.isArray = function(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]';
     };
 
+    /**
+     * 判断参数类型是否为Function
+     *
+     * @param {*} func
+     * @return {boolean} 参数为Function类型则返回true，否则为false
+     */
     util.isFunction = function(func) {
         return Object.prototype.toString.call(func) === '[object Function]';
-    }
+    };
 
+    /**
+     * 给DOM元素添加指定类型的事件
+     *
+     * @param {HTMLElement} element DOM节点
+     * @param {string} type 事件类型
+     * @param {Function} listener 事件处理函数
+     */
+    util.on = function (element, type, listener) {
+        if (element.addEventListener) {
+            element.addEventListener(type, listener, false);
+        }
+        else if (element.attachEvent) {
+            element.attachEvent('on' + type, listener);
+        }
+    };
+
+    /**
+     * 给DOM元素移除指定类型的事件
+     *
+     * @param {HTMLElement} element DOM节点
+     * @param {string} type 事件类型
+     * @param {Function} listener 事件处理函数
+     */
+    util.un = function (element, type, listener) {
+        if (element.addEventListener) {
+            element.removeEventListener(type, listener, false);
+        }
+        else if (element.attachEvent) {
+            element.detachEvent('on' + type, listener);
+        }
+    };
+
+    /**
+     * 获取Object上自身所有的key
+     *
+     * @param {Object} obj
+     * @return {Array} 参数上自身所有的key
+     */
     util.keys = function(obj) {
         var keys = [];
         var obj = obj || {};
@@ -302,7 +362,7 @@ define(function () {
         }
 
         return keys;
-    }
+    };
 
     return util;
 });

@@ -44,9 +44,25 @@ define(function (require) {
         locator.redirect(url);
     }
 
+    /**
+     * 用于低版本浏览器监听hash变化的定时器
+     *
+     * @type {number}
+     */
     var rollTimer = 0;
+
+    /**
+     * 初次进入时处理hash的定时器
+     *
+     * @type {number}
+     */
     var startupTimer = 1;
 
+    /**
+     * 启动地址栏事件监听
+     *
+     * @param {boolean} firstTime 是否为首次进入
+     */
     function start(firstTime) {
         // 如果有hashchange事件则使用事件，否则定时监听
         if (window.addEventListener) {
@@ -65,6 +81,9 @@ define(function (require) {
         }
     }
 
+    /**
+     * 停止地址栏事件监听
+     */
     function stop() {
         if (rollTimer) {
             clearInterval(rollTimer);

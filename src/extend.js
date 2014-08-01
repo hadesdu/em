@@ -1,6 +1,17 @@
+/**
+ * @file 通过extend继承父类生成子类且绑定子类属性
+ * @author hades(denghongqi@baidu.com)
+ */
 define(function(require) {
     var util = require('./util');
 
+    /**
+     * 继承父类生成子类且给子类绑定属性和方法
+     *
+     * @param {Object} protoProps 需要绑定到子类prototype的属性和方法
+     * @param {Object} staticProps 需要直接绑定到子类上的静态属性和方法
+     * @return {Function} 子类的构造函数
+     */
     function extend(protoProps, staticProps) {
         var parent = this;
         var child;
@@ -9,7 +20,7 @@ define(function(require) {
             child = protoProps.constructor;
         }
         else {
-            child = function(){ 
+            child = function () { 
                 return parent.apply(this, arguments); 
             };
         }

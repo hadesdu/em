@@ -1,3 +1,7 @@
+/**
+ * @file Model类
+ * @author hades(denghongqi@baidu.com)
+ */
 define(function(require) {
     var util = require('./util');
     var hash = require('./hash');
@@ -5,6 +9,12 @@ define(function(require) {
     var locator = require('./locator');
     var EventTarget = require('mini-event/EventTarget');
 
+    /**
+     * Model类声明
+     *
+     * extends mini-event.EventTarget
+     * @constructor
+     */
     function Model() {
         this._tpl = [];
         this._tplParamName = this.tplParamName || '_tpl';
@@ -21,17 +31,41 @@ define(function(require) {
         locator.on('redirect', util.bind(this.onRedirect, this));
     }
 
+    /**
+     * 向Model中添加数据
+     *
+     * @public
+     * @param {string} key 向Model中添加的数据的key
+     * @param {*} value 向Model中添加的数据value
+     */
     Model.prototype.set = function(key, value) {
         this._database[key] = value;
     };
 
+    /**
+     * 从Model中获取数据
+     *
+     * @public
+     * @param {string} key 从Model中获取的数据的key
+     * @return {*} 取得的数据
+     */
     Model.prototype.get = function(key) {
         return this._database[key];
     };
 
-    Model.prototype.update = function() {
-    };
+    /**
+     * 更新Model，由具体业务实现
+     *
+     * @public
+     */
+    Model.prototype.update = util.noop;
 
+    /**
+     * 注册模板，其它模块可以使用该方法向Model注册模版
+     *
+     * @public
+     * @param {(string | Array.<string> | Object)} 模板配置
+     */
     Model.prototype.registerTpl = function(tplConfig) {
         if (!tplConfig) {
             return ;
@@ -61,8 +95,14 @@ define(function(require) {
         util.each(tplConfig, function(item, index) {
             me._tpl.push(item);
         });
-    }
+    };
 
+    /**
+     * 生成模板请求参数
+     * 用于queryString的模版参数
+     *
+     * @public
+     */
     Model.prototype.getTplParam = function() {
         var tplParam = {};
 
@@ -76,8 +116,19 @@ define(function(require) {
         return tplParam;
     };
 
+    /**
+     * locator redirect的时候触发
+     *
+     * @event
+     * @param {Object} e 事件对象
+     */
     Model.prototype.onRedirect = function(e) {
         var isJump = this.isJump(e);
+
+        if (!isJump) {
+            return ;
+        }
+
         var params = this.getParams();
 
         var options = {
@@ -93,8 +144,14 @@ define(function(require) {
         
     };
 
+    /**
+     * ajax更新数据完成后触发
+     *
+     * @public
+     * @param {Object} data ajax返回的数据
+     */
     Model.prototype.done = function(data) {
-        if (data.status != 0) {
+        if (data.status !== 0) {
             return ;
         }
         
@@ -105,8 +162,18 @@ define(function(require) {
         this.fire('change');
     };
 
+    /**
+     * ajax更新数据失败后触发
+     *
+     * @public
+     */
     Model.prototype.fail = util.noop;
 
+    /**
+     * 生成model ajax更新时的请求params
+     *
+     * @public
+     */
     Model.prototype.getParams = function() {
         return util.mix(
             {},
@@ -116,6 +183,11 @@ define(function(require) {
         );
     };
 
+    /**
+     * 设置model ajax更新时的默认参数
+     *
+     * @public
+     */
     Model.prototype.setParams = function(params) {
         util.mix(
             this._params,
@@ -123,6 +195,13 @@ define(function(require) {
         );
     };
 
+    /**
+     * 判断locator redirect时是否刷新model
+     *
+     * @public
+     * @param {Object} e locator redirect时的事件对象
+     * @return {boolean} true 则触发model刷新，false不触发
+     */
     Model.prototype.isJump = function(e) {
         var query = hash.getQuery();
         var referrerQuery = hash.parse(e.referrer);

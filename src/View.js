@@ -1,8 +1,24 @@
+/**
+ * @file View类
+ * @author hades(denghongqi@baidu.com)
+ */
 define(function(require) {
     var util = require('./util');
     var EventTarget = require('mini-event/EventTarget');
+
+    /**
+     * 用于匹配事件代理元素的正则表达式
+     *
+     * @type {RegExp}
+     */
     var delegateEventSplitter = /^(\S+)\s*(.*)$/;
 
+    /**
+     * View类声明
+     *
+     * extends mini-event.EventTarget
+     * @constructor
+     */
     function View() {
         this._id = util.guid();
 
@@ -13,6 +29,11 @@ define(function(require) {
         this.el && this.setElement(this.el);
     }
 
+    /**
+     * 处理模版配置，给模版生成guid，同时向model注册模版
+     *
+     * @inner
+     */
     View.prototype._initAjaxTpl = function() {
         var ajaxTpl = this.ajaxTpl || [];
 
@@ -45,9 +66,12 @@ define(function(require) {
         this._tplConfig = tplConfig;
     };
 
+    /**
+     * 向model注册事件，在model抛出change事件的时候出发view reload
+     *
+     * @inner
+     */
     View.prototype._initModelEvents = function() {
-        var tplConfig = this._tplConfig;
-
         this._models = util.isArray(this.model)
             ? this.model.slice()
             : [this.model];
@@ -65,19 +89,38 @@ define(function(require) {
         
     };
 
+    /**
+     * 设置view的最外层主元素
+     *
+     * @public
+     * @param {(HTMLElement | Object)} el dom节点或者jquery对象
+     */
     View.prototype.setElement = function(el) {
         this.undelegateEvents();
         this._setElement(el);
         this.delegateEvents();
 
         return this;
-    }
+    };
 
+    /**
+     * 将主元素置位jquery对象
+     *
+     * @inner
+     * @param {(HTMLElement | Object)} el dom节点或者jquery对象
+     */
     View.prototype._setElement = function(el) {
         this.$el = el instanceof $ ? el : $(el);
         this.el = this.$el[0];
     };
 
+    /**
+     * 根据events列表代理冒泡到主元素的事件并绑定this为view
+     *
+     * @public
+     * @param {Object} events key为'a click'类似的选择器+事件类型
+     *                        value为事件处理函数
+     */
     View.prototype.delegateEvents = function(events) {
         if (!this.$el) {
             return this;
@@ -106,6 +149,14 @@ define(function(require) {
         }
     };
 
+    /**
+     * 绑定代理事件到主元素
+     *
+     * @public
+     * @param {string} eventName 事件名称，如click
+     * @param {string} selector jquery选择器
+     * @param {Function} listener 事件处理函数
+     */
     View.prototype.delegate = function(eventName, selector, listener) {
         this.$el.on(
             eventName + '.delegateEvents' + this._id, 
@@ -122,6 +173,14 @@ define(function(require) {
         return this;
     };
 
+    /**
+     * 业务层可通过该接口获取model中的数据，实现方式是遍历models
+     * 返回第一个不为undefined的值，models顺序在change时被提前
+     *
+     * @public
+     * @param {string} key 要获取的数据的key
+     * @return {*} 
+     */
     View.prototype.get = function(key) {
         for (var i = 0; i < this._models.length; i++) {
             var model = this._models[i];
@@ -134,6 +193,13 @@ define(function(require) {
         }
     };
 
+    /**
+     * 用于业务层获取模板数据
+     * 
+     * @public
+     * @param {string} key 模板的key
+     * @return {string} 模板的html片段
+     */
     View.prototype.getTpl = function(key) {
         var tplConfig = this._tplConfig;
 
@@ -142,11 +208,22 @@ define(function(require) {
         return this.get(tplConfig[key]['_guid']);
     };
 
+    /**
+     * 生成view的guid
+     *
+     * @public
+     * @return {string} guid
+     */
     View.prototype.getGuid = function() {
         this._id = this._id || util.guid();
         return this._id;
     };
 
+    /**
+     * 初始化view的时候执行，业务层处理
+     *
+     * @public
+     */
     View.prototype.init = util.noop;
 
     util.inherits(View, EventTarget);
