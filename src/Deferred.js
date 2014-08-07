@@ -110,7 +110,7 @@ define(
                             'exception',
                             {
                                 deferred: original,
-                                args: [error],
+                                args: [ error ],
                                 reason: error
                             }
                         );

@@ -11,7 +11,23 @@ define(function(require) {
 
     /**
      * Model类声明
+     * 通过Model类的extend方法可以派生出子类，在extend方法中可以通过传入参数
+     * 为子类绑定方法和属性，如：
+     * 
+     * var ChildModel = Model.extend({
+     * 
+     *     url: '/foo/bar',    //用于refresh model的ajax地址
+     * 
+     *     defaults: {,    //model初始化时的默认数据
+     *         foo: 1,
+     *         bar: 2,
+     *     },
      *
+     *     params: {    //用于model refresh时ajax请求的额外参数
+     *         time: '2014'
+     *     }
+     * });
+     * 
      * extends mini-event.EventTarget
      * @constructor
      */
@@ -64,7 +80,7 @@ define(function(require) {
      * 注册模板，其它模块可以使用该方法向Model注册模版
      *
      * @public
-     * @param {(string | Array.<string> | Object)} 模板配置
+     * @param {(string | Array.<string> | Object)} tplConfig 模板配置
      */
     Model.prototype.registerTpl = function(tplConfig) {
         if (!tplConfig) {
@@ -74,13 +90,15 @@ define(function(require) {
         switch (Object.prototype.toString.call(tplConfig))
         {
             case '[object String]':
-                tplConfig = [{
-                    tpl: tplConfig
-                }];
+                tplConfig = [
+                    {
+                        tpl: tplConfig
+                    }
+                ];
                 break;
 
             case '[object Object]':
-                tplConfig = [tplConfig];
+                tplConfig = [ tplConfig ];
                 break;
 
             case '[object Array]':
@@ -231,6 +249,9 @@ define(function(require) {
 
     util.inherits(Model, EventTarget);
 
+    /**
+     * 给Model添加extend方法
+     */
     Model.extend = require('./extend');
     
     return Model;

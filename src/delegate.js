@@ -29,7 +29,7 @@ define(function(require) {
      * 页面有click事件，冒泡到body的时候触发
      *
      * @event
-     * @param {e} 事件对象
+     * @param {Object} e 事件对象
      */
     function onClick(e) {
         var e = e || window.event;

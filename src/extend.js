@@ -13,7 +13,7 @@ define(function(require) {
      * @return {Function} 子类的构造函数
      */
     function extend(protoProps, staticProps) {
-        var parent = this;
+        var self = this;
         var child;
 
         if (protoProps && protoProps.hasOwnProperty('constructor')) {
@@ -21,16 +21,16 @@ define(function(require) {
         }
         else {
             child = function () { 
-                return parent.apply(this, arguments); 
+                return self.apply(this, arguments); 
             };
         }
 
-        util.mix(child, parent, staticProps);
+        util.mix(child, self, staticProps);
         
-        util.inherits(child, parent);
+        util.inherits(child, self);
 
         protoProps && util.mix(child.prototype, protoProps);
-        child.__super__ = parent.prototype;
+        child.__super__ = self.prototype;
 
         return child;
     }
