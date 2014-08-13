@@ -181,9 +181,11 @@ define(function () {
         if (window.JSON && typeof JSON.parse === 'function') {
             return JSON.parse(text);
         }
+        /* jshint ignore:start */
         else {
             return eval('(' + text + ')');
         }
+        /* jshint ignore:end */
     };
 
     /**
@@ -285,7 +287,7 @@ define(function () {
         }
 
         for (var i = 0; i < arr.length; i++) {
-            if (item == arr[i]) {
+            if (item === arr[i]) {
                 return i;
             }
         }
@@ -311,6 +313,16 @@ define(function () {
      */
     util.isFunction = function(func) {
         return Object.prototype.toString.call(func) === '[object Function]';
+    };
+
+    /**
+     * 判断参数类型是否为Object
+     *
+     * @param {*} obj
+     * @return {boolean} 参数为Object类型则返回true，否则为false
+     */
+    util.isObject = function(obj) {
+        return Object.prototype.toString.call(obj) === '[object Object]';
     };
 
     /**

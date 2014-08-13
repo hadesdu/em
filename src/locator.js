@@ -18,6 +18,16 @@ define(function (require) {
     var locator = {};
     var currentLocation = '';
 
+    var hash = require('./hash');
+    var util = require('./util');
+
+    /**
+     * redirect hook函数集合
+     *
+     * @type {Array<Function>}
+     */
+    var redirectHooks = [];
+
     /**
      * 获取URL中的hash值
      *
@@ -173,21 +183,102 @@ define(function (require) {
         url = locator.resolveURL(url);
 
         var referrer = currentLocation;
-        var isLocationChanged = updateURL(url, options);
-        if (isLocationChanged || options.force) {
-            if (!options.silent) {
-                /**
-                 * URL跳转时触发
-                 *
-                 * @event redirect
-                 * @param {Object} e 事件对象
-                 * @param {string} e.url 当前的URL
-                 */
-                locator.fire(
-                    'redirect', 
-                    { url: url, referrer: referrer }
-                );
+
+        if (url === currentLocation) {
+            return ;
+        }
+
+        var Deferred = require('./Deferred');
+
+        var deferred = new Deferred();
+
+        deferred.done(function(query) {
+            var url = hash.createUrl(query);
+            var isLocationChanged = updateURL(url, options);
+            if (isLocationChanged || options.force) {
+                if (!options.silent) {
+                    /**
+                     * URL跳转时触发
+                     *
+                     * @event redirect
+                     * @param {Object} e 事件对象
+                     * @param {string} e.url 当前的URL
+                     */
+                    locator.fire(
+                        'redirect', 
+                        { url: url, referrer: referrer }
+                    );
+                }
             }
+        });
+
+        locator._handleRedirectHooks(deferred, url);
+    };
+
+    /**
+     * 向locator redirect添加hook
+     *
+     * @param {Function} hook
+     */
+    locator.addRedirectHook = function(hook) {
+        if (typeof hook === 'function') {
+            redirectHooks.push(hook);
+        }
+    };
+
+    /**
+     * 处理locator redirect hook
+     *
+     * @inner
+     * @param {Object} deferred promise实例，用于回调执行redirect
+     * @param {string} targetUrl redirect的目标url
+     */
+    locator._handleRedirectHooks = function(deferred, targetUrl) {
+        var targetQuery = hash.parse(targetUrl || '');
+        var currentQuery = hash.getQuery();
+        var changedArr = util.diffObject(targetQuery, currentQuery);
+
+        var changed = {};
+
+        for (var i = 0; i < changedArr.length; i++) {
+            var query = changedArr[i];
+            changed[query] = targetQuery[query];
+        }
+
+        /**
+         * 用于统计promise个数，在所有promise done的时候回调redirect
+         *
+         * @type {string}
+         */
+        var count = 0;
+
+        for (var i = 0; i < redirectHooks.length; i++) {
+            var hook = redirectHooks[i];
+            
+            if (typeof hook !== 'function') {
+                continue;
+            }
+
+            var res = hook(targetQuery, currentQuery, changed);
+
+            if (util.isObject(res) && typeof res.done === 'function') {
+                count++;
+
+                res.ensure(function(query) {
+                    targetQuery = util.mix(targetQuery, query || {});
+
+                    if (--count === 0) {
+                        deferred.resolve(targetQuery);
+                    }
+                });
+            }
+            else if (util.isObject(res)) {
+                targetQuery = util.mix(targetQuery, res);
+            }
+        }
+
+        if (count === 0) {
+            deferred.resolve(targetQuery);
         }
     };
 

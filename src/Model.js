@@ -45,6 +45,8 @@ define(function(require) {
         );
 
         locator.on('redirect', util.bind(this.onRedirect, this));
+
+        locator.addRedirectHook(util.bind(this.redirectHook, this));
     }
 
     /**
@@ -133,6 +135,17 @@ define(function(require) {
 
         return tplParam;
     };
+
+    /**
+     * locator redirect之前的hook
+     *
+     * @param {Object} targetQuery
+     * @param {Object} currentQuery
+     * @param {Array} changed
+     *
+     * @return {?Object} 如果为异步操作，允许返回一个Promise实例
+     */
+    Model.prototype.redirectHook = util.noop();
 
     /**
      * locator redirect的时候触发

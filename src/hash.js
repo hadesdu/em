@@ -32,6 +32,16 @@ define(function(require) {
     };
 
     /**
+     * 将参数对象转换为hash url
+     *
+     * @param {Object} query 参数对象
+     * @return {string} 转换后的hash url
+     */
+    hash.createUrl = function(query) {
+        return '~' + hash.serialize(query);
+    };
+
+    /**
      * 将字符串转化成参数对象
      *
      * @param {string} hash 要转化的hash字符串
