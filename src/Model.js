@@ -145,7 +145,7 @@ define(function(require) {
      *
      * @return {?Object} 如果为异步操作，允许返回一个Promise实例
      */
-    Model.prototype.redirectHook = util.noop();
+    Model.prototype.redirectHook = util.noop;
 
     /**
      * locator redirect的时候触发
