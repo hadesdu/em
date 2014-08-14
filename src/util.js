@@ -322,7 +322,11 @@ define(function () {
      * @return {boolean} 参数为Object类型则返回true，否则为false
      */
     util.isObject = function(obj) {
-        return Object.prototype.toString.call(obj) === '[object Object]';
+        if (obj && Object.prototype.toString.call(obj) === '[object Object]') {
+            return true;
+        }
+
+        return false;
     };
 
     /**
