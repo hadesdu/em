@@ -102,6 +102,10 @@ define(function(require) {
      * @inner
      */
     View.prototype._initModelEvents = function() {
+        if (!this.model) {
+            return;
+        }
+
         this._models = util.isArray(this.model)
             ? this.model.slice()
             : [ this.model ];
@@ -117,6 +121,17 @@ define(function(require) {
             });
         });
         
+    };
+
+    /**
+     * 设置ajax模板
+     *
+     * @public
+     * @param {(Array | Array<Object>)} 模板参数
+     */
+    View.prototype.setAjaxtpl = function(config) {
+        this.ajaxTpl = config || [];
+        this._initAjaxTpl();
     };
 
     /**
