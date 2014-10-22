@@ -38,14 +38,15 @@ define(function(require) {
 
         if (recentA) {
             var href = recentA.getAttribute('href');
-            if (/^#~/.test(href)) {
+            if (/#~/.test(href)) {
                 if (e.preventDefault) {
                     e.preventDefault();
                 }
                 else {
                     e.returnValue = false;
                 }
-                redirect(href.slice(1));
+
+                redirect(href.slice(href.indexOf('#') + 1));
             }
         }
     }
