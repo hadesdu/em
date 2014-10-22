@@ -291,6 +291,18 @@ define(function (require) {
         }
     };
 
+    /**
+     * 向地址栏增加新的参数
+     *
+     * @public
+     */
+    locator.addQuery = function(query) {
+        var query = query || {};
+
+        var queryString = hash.addQuery(query);
+        locator.redirect(queryString);
+    };
+
     require('mini-event/EventTarget').enable(locator);
     return locator;
 });

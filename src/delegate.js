@@ -34,10 +34,10 @@ define(function(require) {
     function onClick(e) {
         var e = e || window.event;
         var target = e.target || e.srcElement;
-        var tagName = target.tagName.toUpperCase();
+        var recentA = getRecentA(target);
 
-        if (tagName === 'A') {
-            var href = target.getAttribute('href');
+        if (recentA) {
+            var href = recentA.getAttribute('href');
             if (/^#~/.test(href)) {
                 if (e.preventDefault) {
                     e.preventDefault();
@@ -48,6 +48,24 @@ define(function(require) {
                 redirect(href.slice(1));
             }
         }
+    }
+
+    /**
+     * 向上遍历获取最近的A标签，包括自身
+     *
+     * @param {Object} current 当前节点
+     * @return {(Object|null)} 最近的a标签祖先节点
+     */
+    function getRecentA(current) {
+        if (!current) {
+            return null;
+        }
+
+        if (current.tagName && current.tagName.toUpperCase() === 'A') {
+            return current;
+        }
+
+        return getRecentA(current.parentNode);
     }
 
     /**

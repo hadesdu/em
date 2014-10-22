@@ -27,9 +27,20 @@ define(function(require) {
         delegate.stop();
     }
 
+    /**
+     * 向hash新增query参数
+     *
+     * @public
+     * @param {Object} query 参数对象
+     */
+    function addQuery(query) {
+        locator.addQuery(query);
+    }
+
     return {
         version: '0.1.0',
         start: start,
-        stop: stop
+        stop: stop,
+        addQuery: addQuery
     };
 });

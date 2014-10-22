@@ -21,6 +21,8 @@ define(function(require) {
      * var ChildView = View.extend({
      *
      *     el: $('#main'),    //el为jquery对象，作为view的主元素，提供事件代理
+     *
+     *     components: [],
      *     
      *     ajaxTpl: {    //多个tpl可以传一个数组
      *         key: 'list',    //多个模板时用户前端获取模板，只有单个模版时可不填
@@ -54,6 +56,8 @@ define(function(require) {
         this._initModelEvents();
 
         this.el && this.setElement(this.el);
+
+        this._initComponents();
     }
 
     /**
@@ -118,9 +122,38 @@ define(function(require) {
                 me._models.unshift(item);
 
                 me.reload();
+                me._initComponents();
             });
         });
         
+    };
+
+    /**
+     * 初始化view包含的控件
+     */
+    View.prototype._initComponents = function() {
+        this.components = this.components || [];
+
+        var me = this;
+        util.each(this.components, function(item, index) {
+            var control = item.control;
+
+            if (!control) {
+                return ;
+            }
+
+            if (control.setMain && item.selector) {
+                var main = me.$el.find(item.selector);
+
+                if (main.length) {
+                    control.setMain(main);
+                }
+            }
+
+            if (control && control.init) {
+                control.init();
+            }
+        });
     };
 
     /**
