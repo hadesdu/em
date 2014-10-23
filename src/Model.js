@@ -39,6 +39,9 @@ define(function(require) {
             this.params || {}
         );
 
+        this._reserveParamName = this.reserveParamName || '_r';
+        this._reserve = this.reserve || [],
+
         this._database = util.mix(
             {},
             this.defaults || {}
@@ -137,6 +140,21 @@ define(function(require) {
     };
 
     /**
+     * 生成要求后端保留的除模板以外的数据
+     *
+     * @return {Object}
+     */
+    Model.prototype.getReserve = function () {
+        var ret = {};
+
+        if (this._reserve.length) {
+            ret[this._reserveParamName] = this._reserve.join(',')
+        }
+
+        return ret;
+    }
+
+    /**
      * locator redirect之前的hook
      *
      * @param {Object} targetQuery
@@ -170,8 +188,8 @@ define(function(require) {
         };
 
         this._deferred = ajax.request(options);
-        this._deferred.done(util.bind(this.done, this));
-        this._deferred.fail(util.bind(this.fail, this));
+        this._deferred.done(util.bind(this.done, this, e));
+        this._deferred.fail(util.bind(this.fail, this, e));
         
     };
 
@@ -181,7 +199,7 @@ define(function(require) {
      * @public
      * @param {Object} data ajax返回的数据
      */
-    Model.prototype.done = function(data) {
+    Model.prototype.done = function(e, data) {
         if (data.status !== 0) {
             return ;
         }
@@ -190,7 +208,7 @@ define(function(require) {
 
         util.mix(this._database, data);
         
-        this.fire('change');
+        this.fire('change', e);
     };
 
     /**
@@ -210,6 +228,7 @@ define(function(require) {
             {},
             this._params,
             this.getTplParam(),
+            this.getReserve(),
             hash.getQuery()
         );
     };

@@ -188,6 +188,17 @@ define(function (require) {
             return ;
         }
 
+        var currentQuery = hash.getQuery();
+        var targetQuery = hash.parse(url || '');
+        var changedArr = util.diffObject(targetQuery, currentQuery);
+
+        var changed = {};
+
+        for (var i = 0; i < changedArr.length; i++) {
+            var query = changedArr[i];
+            changed[query] = targetQuery[query];
+        }
+
         var Deferred = require('./Deferred');
 
         var deferred = new Deferred();
@@ -206,13 +217,27 @@ define(function (require) {
                      */
                     locator.fire(
                         'redirect', 
-                        { url: url, referrer: referrer }
+                        {
+                            url: url, 
+                            referrer: referrer, 
+                            currentQuery: currentQuery,
+                            targetQuery: targetQuery,
+                            changed: changed
+                        }
                     );
                 }
             }
         });
 
-        locator._handleRedirectHooks(deferred, url);
+        locator._handleRedirectHooks(
+            deferred,
+            url,
+            {
+                currentQuery: currentQuery,
+                targetQuery: targetQuery,
+                changed: changed
+            }
+        );
     };
 
     /**
@@ -232,18 +257,12 @@ define(function (require) {
      * @inner
      * @param {Object} deferred promise实例，用于回调执行redirect
      * @param {string} targetUrl redirect的目标url
+     * @param {Object} opt redirect相关信息
      */
-    locator._handleRedirectHooks = function(deferred, targetUrl) {
-        var targetQuery = hash.parse(targetUrl || '');
-        var currentQuery = hash.getQuery();
-        var changedArr = util.diffObject(targetQuery, currentQuery);
-
-        var changed = {};
-
-        for (var i = 0; i < changedArr.length; i++) {
-            var query = changedArr[i];
-            changed[query] = targetQuery[query];
-        }
+    locator._handleRedirectHooks = function(deferred, targetUrl, opt) {
+        var currentQuery = opt.currentQuery;
+        var targetQuery = opt.targetQuery;
+        var changed = opt.changed;
 
         /**
          * 用于统计promise个数，在所有promise done的时候回调redirect

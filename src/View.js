@@ -116,12 +116,12 @@ define(function(require) {
 
         var me = this;
         util.each(this._models, function(item) {
-            item.on('change', function() {
+            item.on('change', function(e) {
                 var index = util.inArray(me._models, item);
                 me._models.splice(index, 1);
                 me._models.unshift(item);
 
-                me.reload();
+                me.reload.call(me, e);
                 me._initComponents();
             });
         });
