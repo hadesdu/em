@@ -2,6 +2,7 @@
  * @file 通过extend继承父类生成子类且绑定子类属性
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function(require) {
     var util = require('./util');
 
@@ -20,13 +21,13 @@ define(function(require) {
             child = protoProps.constructor;
         }
         else {
-            child = function () { 
-                return self.apply(this, arguments); 
+            child = function () {
+                return self.apply(this, arguments);
             };
         }
 
         util.mix(child, self, staticProps);
-        
+
         util.inherits(child, self);
 
         protoProps && util.mix(child.prototype, protoProps);

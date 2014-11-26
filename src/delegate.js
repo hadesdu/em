@@ -2,6 +2,7 @@
  * @file 事件代理模块，提供全局的事件代理
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function(require) {
     var util = require('./util');
     var hash = require('./hash');
@@ -32,7 +33,7 @@ define(function(require) {
      * @param {Object} e 事件对象
      */
     function onClick(e) {
-        var e = e || window.event;
+        e = e || window.event;
         var target = e.target || e.srcElement;
         var recentA = getRecentA(target);
 

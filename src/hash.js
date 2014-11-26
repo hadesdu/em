@@ -2,6 +2,7 @@
  * @file url相关的函数
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function(require) {
     var util = require('./util');
 
@@ -23,7 +24,7 @@ define(function(require) {
             if (query.hasOwnProperty(key)) {
                 var value = query[key];
                 // 如果`value`是数组，其`toString`会自动转为逗号分隔的字符串
-                search += '&' + encodeURIComponent(key) 
+                search += '&' + encodeURIComponent(key)
                     + '=' + encodeURIComponent(value);
             }
         }
@@ -84,13 +85,13 @@ define(function(require) {
 
     /**
      * 将参数对象序列化成hash
-     * 
+     *
      * @param {Object} query 参数对象
      * @return {string} 转化后的参数字符串
      */
     hash.setQuery = function(query) {
-        var query = query || {};
-        
+        query = query || {};
+
         return '~' + this.serialize(query);
     };
 
@@ -101,7 +102,7 @@ define(function(require) {
      * @return {string} 转换后的参数字符串
      */
     hash.addQuery = function(query) {
-        var query = query || {};
+        query = query || {};
         var currentQuery = this.parse(window.location.hash);
 
         return this.setQuery(util.mix(currentQuery, query));
@@ -109,7 +110,7 @@ define(function(require) {
 
     /**
      * 获取当前hash的参数对象
-     * 
+     *
      * @param {string=} key 要获取的参数的key
      * @return {Object} 当前hash的参数对象
      */

@@ -2,6 +2,7 @@
  * @file 简单的，仅调试期有效的断言库
  * @author otakustay
  */
+
 define(function (require) {
     if (window.DEBUG) {
         /**
@@ -95,15 +96,14 @@ define(function (require) {
 
         return assert;
     }
-    else {
-        var assert = function () {};
-        assert.has = assert;
-        assert.equals = assert;
-        assert.hasProperty = assert;
-        assert.lessThan = assert;
-        assert.greaterThan = assert;
-        assert.lessThanOrEquals = assert;
-        assert.greaterThanOrEquals = assert;
-        return assert;
-    }
+
+    assert = function () {};
+    assert.has = assert;
+    assert.equals = assert;
+    assert.hasProperty = assert;
+    assert.lessThan = assert;
+    assert.greaterThan = assert;
+    assert.lessThanOrEquals = assert;
+    assert.greaterThanOrEquals = assert;
+    return assert;
 });

@@ -2,6 +2,7 @@
  * @file AJAX相关方法
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function (require) {
     var util = require('./util');
 
@@ -58,9 +59,11 @@ define(function (require) {
             case '[object Object]':
                 var result = [];
                 for (var name in data) {
-                    var propertyKey = getKey(name, prefix);
-                    var propertyValue = this.serializeData(propertyKey, data[name]);
-                    result.push(propertyValue);
+                    if (data.hasOwnProperty(name)) {
+                        var propertyKey = getKey(name, prefix);
+                        var propertyValue = this.serializeData(propertyKey, data[name]);
+                        result.push(propertyValue);
+                    }
                 }
                 return result.join('&');
             default:
@@ -74,8 +77,8 @@ define(function (require) {
     /**
      * 生成序列化属性的key
      *
-     * @param {string} propertyName
-     * @param {string} parentKey
+     * @param {string} propertyName 属性名
+     * @param {string} parentKey 属性key
      * @return {string}
      */
     serializeData.getKey = function (propertyName, parentKey) {
@@ -87,7 +90,7 @@ define(function (require) {
      *
      * 通过`require('er/ajax').Ajax`访问该类构造函数，其中`require('er/ajax')`是该类的全局实例
      *
-     * @extends mini-event.EventTarget
+     * @extends EventTarget
      * @constructor
      */
     function Ajax() {
@@ -121,6 +124,8 @@ define(function (require) {
      * @param {meta.AjaxOption} options 相关配置
      * @return {meta.FakeXHR}
      */
+    /*eslint-disable no-irregular-whitespace*/
+    /*eslint-disable fecs-max-statements*/
     Ajax.prototype.request = function (options) {
         if (typeof this.hooks.beforeExecute === 'function') {
             this.hooks.beforeExecute(options);
@@ -156,7 +161,7 @@ define(function (require) {
             ? new XMLHttpRequest()
             : new window.ActiveXObject('Microsoft.XMLHTTP');
 
-        var fakeXHR = requesting.promise;
+        fakeXHR = requesting.promise;
         var xhrWrapper = {
             abort: function () {
                 // 有些浏览器`abort()`就会把`readyState`变成4，
@@ -191,7 +196,7 @@ define(function (require) {
 
         util.mix(xhrWrapper, new EventTarget(), EventTarget.prototype);
         util.mix(fakeXHR, xhrWrapper);
-        
+
         fakeXHR.then(
             function () {
                 /**
@@ -204,7 +209,7 @@ define(function (require) {
                  */
                 this.fire(
                     'done',
-                    { xhr: fakeXHR, options: options }
+                    {xhr: fakeXHR, options: options}
                 );
             },
             function () {
@@ -218,7 +223,7 @@ define(function (require) {
                  */
                 this.fire(
                     'fail',
-                    { xhr: fakeXHR, options: options }
+                    {xhr: fakeXHR, options: options}
                 );
             }
         );
@@ -303,7 +308,7 @@ define(function (require) {
         }
         else {
             var contentType = options.contentType || 'application/x-www-form-urlencoded';
-            var query = this.hooks.serializeData('', options.data, contentType, fakeXHR);
+            query = this.hooks.serializeData('', options.data, contentType, fakeXHR);
             if (options.charset) {
                 contentType += ';charset=' + options.charset;
             }
@@ -324,7 +329,7 @@ define(function (require) {
                  */
                 this.fire(
                     'timeout',
-                    { xhr: fakeXHR, options: options }
+                    {xhr: fakeXHR, options: options}
                 );
                 fakeXHR.status = 408; // HTTP 408: Request Timeout
                 fakeXHR.abort();
@@ -337,6 +342,8 @@ define(function (require) {
 
         return fakeXHR;
     };
+    /*eslint-enable fecs-max-statements*/
+    /*eslint-enable no-irregular-whitespace*/
 
     /**
      * 发起一个`GET`请求

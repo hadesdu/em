@@ -2,8 +2,9 @@
  * @file util工具对象
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function () {
-    
+
     /**
      * 当前的时间戳
      *
@@ -18,11 +19,11 @@ define(function () {
 
     /**
      * 方法静态化
-     * 
+     *
      * 反绑定、延迟绑定
      * @inner
      * @param {Function} method 待静态化的方法
-     * 
+     *
      * @return {Function} 静态化包装后方法
      */
     function generic(method) {
@@ -33,12 +34,12 @@ define(function () {
 
     /**
      * 功能降级处理
-     * 
+     *
      * @inner
      * @param {boolean} condition feature 可用的测试条件
      * @param {Function} implement feature 不可用时的降级实现
      * @param {Function} feature 可用的特性方法
-     * 
+     *
      * @return {Function} 静态化后的 feature 或 对应的降级实现函数
      */
     function fallback(condition, implement, feature) {
@@ -47,7 +48,7 @@ define(function () {
 
     /**
      * 遍历数组方法
-     * 
+     *
      * 现代浏览器中数组 forEach 方法静态化别名
      * @method module:lib.each
      * @param {Array} obj 待遍历的数组或类数组
@@ -79,7 +80,7 @@ define(function () {
      *
      * @param {Object} source 源对象
      * @param {...Object} destinations 用于混合的对象
-     * @return 返回混合了`destintions`属性的`source`对象
+     * @return {Object} 返回混合了`destintions`属性的`source`对象
      */
     util.mix = function (source) {
         for (var i = 1; i < arguments.length; i++) {
@@ -128,19 +129,19 @@ define(function () {
     /**
      * 空函数
      *
-     * @type {function}
+     * @type {Function}
      * @const
      */
     util.noop = function () {};
 
-    var dontEnumBug = !(({ toString: 1 }).propertyIsEnumerable('toString'));
+    var dontEnumBug = !(({toString: 1}).propertyIsEnumerable('toString'));
 
     /**
      * 设置继承关系
      *
-     * @param {function} type 子类
-     * @param {function} superType 父类
-     * @return {function} 子类
+     * @param {Function} type 子类
+     * @param {Function} superType 父类
+     * @return {Function} 子类
      */
     util.inherits = function (type, superType) {
         var Empty = function () {};
@@ -151,7 +152,9 @@ define(function () {
         type.prototype = proto;
 
         for (var key in originalPrototype) {
-            proto[key] = originalPrototype[key];
+            if (originalPrototype.hasOwnProperty(key)) {
+                proto[key] = originalPrototype[key];
+            }
         }
         if (dontEnumBug) {
             // 其实还有好多其它的，但应该不会撞上吧(╯‵□′)╯︵┻━┻
@@ -177,15 +180,15 @@ define(function () {
         if (!text) {
             return undefined;
         }
-        
+
         if (window.JSON && typeof JSON.parse === 'function') {
             return JSON.parse(text);
         }
-        /* jshint ignore:start */
-        else {
-            return eval('(' + text + ')');
-        }
-        /* jshint ignore:end */
+        /*eslint-disable no-irregular-whitespace*/
+        /*eslint-disable no-eval*/
+        return eval('(' + text + ')');
+        /*eslint-enable no-eval*/
+        /*eslint-enable no-irregular-whitespace*/
     };
 
     /**
@@ -209,7 +212,7 @@ define(function () {
      * 对字符中进行HTML编码
      *
      * @param {string} source 源字符串
-     * @param {string} HTML编码后的字符串
+     * @return {string}
      */
     util.encodeHTML = function (source) {
         source = source + '';
@@ -237,16 +240,18 @@ define(function () {
     /**
      * diff两个Object，返回value不同的key列表
      *
-     * @param {Object} obj1
-     * @param {Object} obj2
+     * @param {Object} obj1 要diff的对象之一
+     * @param {Object} obj2 要diff的对象之一
      * @return {Array} value不同的key列表
      */
     util.diffObject = function(obj1, obj2) {
-        var obj1 = obj1 || {};
-        var obj2 = obj2 || {};
+        obj1 = obj1 || {};
+        obj2 = obj2 || {};
         var obj = {};
 
-        for (var key in obj1) {
+        var key;
+
+        for (key in obj1) {
             if (obj1.hasOwnProperty(key)) {
                 if (obj1[key] !== obj2[key]) {
                     obj[key] = 1;
@@ -254,7 +259,7 @@ define(function () {
             }
         }
 
-        for (var key in obj2) {
+        for (key in obj2) {
             if (obj2.hasOwnProperty(key)) {
                 if (obj1[key] !== obj2[key]) {
                     obj[key] = 1;
@@ -263,7 +268,7 @@ define(function () {
         }
 
         var res = [];
-        for (var key in obj) {
+        for (key in obj) {
             if (obj.hasOwnProperty(key)) {
                 res.push(key);
             }
@@ -275,12 +280,12 @@ define(function () {
     /**
      * 判断item是否在arr中
      *
-     * @param {Array} arr
-     * @param {*} item
+     * @param {Array} arr 要判断的arr
+     * @param {*} item 要判断的item
      * @return {number}
      */
     util.inArray = function(arr, item) {
-        var arr = arr || [];
+        arr = arr || [];
 
         if (arr.indexOf) {
             return arr.indexOf(item);
@@ -298,7 +303,7 @@ define(function () {
     /**
      * 判断参数类型是否为Array
      *
-     * @param {*} arr
+     * @param {*} arr 要判断的arr
      * @return {boolean} 参数为Array类型则返回true，否则为false
      */
     util.isArray = function(arr) {
@@ -308,7 +313,7 @@ define(function () {
     /**
      * 判断参数类型是否为Function
      *
-     * @param {*} func
+     * @param {*} func 要判断类型的变量
      * @return {boolean} 参数为Function类型则返回true，否则为false
      */
     util.isFunction = function(func) {
@@ -318,7 +323,7 @@ define(function () {
     /**
      * 判断参数类型是否为Object
      *
-     * @param {*} obj
+     * @param {*} obj 要判断类型的变量
      * @return {boolean} 参数为Object类型则返回true，否则为false
      */
     util.isObject = function(obj) {
@@ -364,12 +369,12 @@ define(function () {
     /**
      * 获取Object上自身所有的key
      *
-     * @param {Object} obj
+     * @param {Object} obj 参数obj
      * @return {Array} 参数上自身所有的key
      */
     util.keys = function(obj) {
         var keys = [];
-        var obj = obj || {};
+        obj = obj || {};
 
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {

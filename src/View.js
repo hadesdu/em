@@ -31,12 +31,12 @@ define(function(require) {
      *     },
      *
      *     model: require('./childModel'),    //多个model可传入一个数组
-     *     
+     *
      *     events: {    //events为一个map，event handler自动绑定this指针为当前view
      *         'click .btn': function() {
      *              //do something
      *          }
-     *     }, 
+     *     },
      *
      *     init: function() {},    //用于首屏加载时初始化页面逻辑
      *
@@ -72,7 +72,7 @@ define(function(require) {
         var ajaxTpl = this.ajaxTpl || [];
 
         if (!util.isArray(ajaxTpl)) {
-            ajaxTpl = [ ajaxTpl ];
+            ajaxTpl = [ajaxTpl];
         }
 
         var tplConfig = {};
@@ -86,9 +86,9 @@ define(function(require) {
                 },
                 item
             );
-            
+
             var model = config.model || me.model;
-            var modelArr = util.isArray(model) ? model : [ model ];
+            var modelArr = util.isArray(model) ? model : [model];
 
             util.each(modelArr, function(m) {
                 m && m.registerTpl(config);
@@ -113,7 +113,7 @@ define(function(require) {
 
         this._models = util.isArray(this.model)
             ? this.model.slice()
-            : [ this.model ];
+            : [this.model];
 
         var me = this;
         util.each(this._models, function(item) {
@@ -126,7 +126,7 @@ define(function(require) {
                 me._initComponents();
             });
         });
-        
+
     };
 
     /**
@@ -167,7 +167,7 @@ define(function(require) {
      * 设置ajax模板
      *
      * @public
-     * @param {(Array | Array<Object>)} 模板参数
+     * @param {(Array | Array.<Object>)} config 模板参数
      */
     View.prototype.setAjaxtpl = function(config) {
         this.ajaxTpl = config || [];
@@ -179,6 +179,7 @@ define(function(require) {
      *
      * @public
      * @param {(HTMLElement | Object)} el dom节点或者jquery对象
+     * @return {Object}
      */
     View.prototype.setElement = function(el) {
         this.undelegateEvents();
@@ -205,13 +206,14 @@ define(function(require) {
      * @public
      * @param {Object} events key为'a click'类似的选择器+事件类型
      *                        value为事件处理函数
+     * @return {Object}
      */
     View.prototype.delegateEvents = function(events) {
         if (!this.$el) {
             return this;
         }
 
-        var events = events || this.events;
+        events = events || this.events;
 
         if (!events) {
             return this;
@@ -220,18 +222,22 @@ define(function(require) {
         this.undelegateEvents();
 
         for (var key in events) {
-            var method = events[key];
-            if (!util.isFunction(method)) {
-                method = this[events[key]];
-            }
+            if (events.hasOwnProperty(key)) {
+                var method = events[key];
+                if (!util.isFunction(method)) {
+                    method = this[events[key]];
+                }
 
-            if (!method) {
-                continue;
-            }
+                if (!method) {
+                    continue;
+                }
 
-            var match = key.match(delegateEventSplitter);
-            this.delegate(match[1], match[2], util.bind(method, this));
+                var match = key.match(delegateEventSplitter);
+                this.delegate(match[1], match[2], util.bind(method, this));
+            }
         }
+
+        return this;
     };
 
     /**
@@ -244,8 +250,8 @@ define(function(require) {
      */
     View.prototype.delegate = function(eventName, selector, listener) {
         this.$el.on(
-            eventName + '.delegateEvents' + this._id, 
-            selector, 
+            eventName + '.delegateEvents' + this._id,
+            selector,
             listener
         );
     };
@@ -253,6 +259,9 @@ define(function(require) {
     /**
      * 取消主元素上的代理事件，通常在reload的时候要先取消事件代理，
      * 重绘的时候再添加事件代理
+     *
+     * @public
+     * @return {Object}
      */
     View.prototype.undelegateEvents = function() {
         if (this.$el) {
@@ -268,7 +277,7 @@ define(function(require) {
      *
      * @public
      * @param {string} key 要获取的数据的key
-     * @return {*} 
+     * @return {*}
      */
     View.prototype.get = function(key) {
         for (var i = 0; i < this._models.length; i++) {
@@ -285,7 +294,7 @@ define(function(require) {
     /**
      * 用于业务层获取模板数据，传入ajaxTpl配置的key可获取模板数据
      * 当智配置一个模板时，此处可不传入参数
-     * 
+     *
      * @public
      * @param {string} key 模板的key
      * @return {string} 模板的html片段
@@ -293,7 +302,7 @@ define(function(require) {
     View.prototype.getTpl = function(key) {
         var tplConfig = this._tplConfig;
 
-        var key = key || '__default';
+        key = key || '__default';
 
         return this.get(tplConfig[key]._guid);
     };
@@ -322,6 +331,6 @@ define(function(require) {
      * 给View添加extend方法
      */
     View.extend = require('./extend');
-    
+
     return View;
 });

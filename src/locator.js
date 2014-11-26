@@ -2,14 +2,15 @@
  * @file 地址监听器对象
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function (require) {
     /**
      * 地址监听对象
-     * 
+     *
      * 该对象用于监听地址中的hash部分的变化，以及根据要求更新hash值
-     * 
+     *
      * locator的基本工作流程：
-     * 
+     *
      * 1. 监听hash的变化
      * 2. 当hash变化时，如果确实发生变化（与上一次的值不同），则执行逻辑
      * 3. 保存当前的地址信息（高版本浏览器此时自动记录历史项）
@@ -39,7 +40,7 @@ define(function (require) {
         // 在Firefox下获取会成为**abc=def**
         // 为了避免这一情况，需要从`location.href`中分解
         var index = location.href.indexOf('#');
-        var url = index === -1 
+        var url = index === -1
             ? ''
             : location.href.slice(index);
 
@@ -114,9 +115,9 @@ define(function (require) {
 
     /**
      * 更新当前的hash值，同时在历史记录中添加该项
-     * 
+     *
      * 如果hash值与当前的地址相同则不会进行更新
-     * 
+     *
      * 注意该函数不会触发`redirect`事件，需要跳转请使用`forward`方法，
      * 直接使用`updateURL`修改地址**后果自负**
      *
@@ -128,7 +129,7 @@ define(function (require) {
         var changed = currentLocation !== url;
 
         // 存储当前信息
-        // 
+        //
         // Opera下，相同的hash重复写入会在历史堆栈中重复记录，
         // 需要再行与当前的hash比较
         if (changed && getLocation() !== url) {
@@ -159,6 +160,7 @@ define(function (require) {
      * 根据输入的URL，进行处理后获取真实应该跳转的URL地址
      *
      * @param {string | URL} url 重定向的地址
+     * @return {string}
      */
     locator.resolveURL = function (url) {
         // 当类型为URL时，使用`toString`可转为正常的url字符串
@@ -216,10 +218,10 @@ define(function (require) {
                      * @param {string} e.url 当前的URL
                      */
                     locator.fire(
-                        'redirect', 
+                        'redirect',
                         {
-                            url: url, 
-                            referrer: referrer, 
+                            url: url,
+                            referrer: referrer,
                             currentQuery: currentQuery,
                             targetQuery: targetQuery,
                             changed: changed
@@ -243,7 +245,7 @@ define(function (require) {
     /**
      * 向locator redirect添加hook
      *
-     * @param {Function} hook
+     * @param {Function} hook locator redirect的勾子函数
      */
     locator.addRedirectHook = function(hook) {
         if (typeof hook === 'function') {
@@ -273,7 +275,7 @@ define(function (require) {
 
         for (var i = 0; i < redirectHooks.length; i++) {
             var hook = redirectHooks[i];
-            
+
             if (typeof hook !== 'function') {
                 continue;
             }
@@ -283,13 +285,7 @@ define(function (require) {
             if (util.isObject(res) && typeof res.done === 'function') {
                 count++;
 
-                res.ensure(function(query) {
-                    targetQuery = util.mix(targetQuery, query || {});
-
-                    if (--count === 0) {
-                        deferred.resolve(targetQuery);
-                    }
-                });
+                res.ensure(ensure);
             }
             else if (util.isObject(res)) {
                 targetQuery = util.mix(targetQuery, res);
@@ -299,6 +295,14 @@ define(function (require) {
         if (count === 0) {
             deferred.resolve(targetQuery);
         }
+
+        function ensure(query) {
+            targetQuery = util.mix(targetQuery, query || {});
+
+            if (--count === 0) {
+                deferred.resolve(targetQuery);
+            }
+        }
     };
 
     /**
@@ -306,7 +310,7 @@ define(function (require) {
      */
     locator.reload = function () {
         if (currentLocation) {
-            locator.redirect(currentLocation, { force: true });
+            locator.redirect(currentLocation, {force: true});
         }
     };
 
@@ -314,9 +318,10 @@ define(function (require) {
      * 向地址栏增加新的参数
      *
      * @public
+     * @param {Object} query 要新增的参数
      */
     locator.addQuery = function(query) {
-        var query = query || {};
+        query = query || {};
 
         var queryString = hash.addQuery(query);
         locator.redirect(queryString);

@@ -2,6 +2,7 @@
  * @file Model类
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function(require) {
     var util = require('./util');
     var hash = require('./hash');
@@ -13,11 +14,11 @@ define(function(require) {
      * Model类声明
      * 通过Model类的extend方法可以派生出子类，在extend方法中可以通过传入参数
      * 为子类绑定方法和属性，如：
-     * 
+     *
      * var ChildModel = Model.extend({
-     * 
+     *
      *     url: '/foo/bar',    //用于refresh model的ajax地址
-     * 
+     *
      *     defaults: {,    //model初始化时的默认数据
      *         foo: 1,
      *         bar: 2,
@@ -27,7 +28,7 @@ define(function(require) {
      *         time: '2014'
      *     }
      * });
-     * 
+     *
      * extends mini-event.EventTarget
      * @constructor
      */
@@ -92,8 +93,7 @@ define(function(require) {
             return ;
         }
 
-        switch (Object.prototype.toString.call(tplConfig))
-        {
+        switch (Object.prototype.toString.call(tplConfig)) {
             case '[object String]':
                 tplConfig = [
                     {
@@ -103,13 +103,13 @@ define(function(require) {
                 break;
 
             case '[object Object]':
-                tplConfig = [ tplConfig ];
+                tplConfig = [tplConfig];
                 break;
 
             case '[object Array]':
                 break;
-            
-            default: 
+
+            default:
                 tplConfig = [];
                 break;
         }
@@ -125,6 +125,7 @@ define(function(require) {
      * 用于queryString的模版参数
      *
      * @public
+     * @return {Object}
      */
     Model.prototype.getTplParam = function() {
         var tplParam = {};
@@ -148,11 +149,11 @@ define(function(require) {
         var ret = {};
 
         if (this._reserve.length) {
-            ret[this._reserveParamName] = this._reserve.join(',')
+            ret[this._reserveParamName] = this._reserve.join(',');
         }
 
         return ret;
-    }
+    };
 
     /**
      * locator redirect之前的hook
@@ -190,24 +191,25 @@ define(function(require) {
         this._deferred = ajax.request(options);
         this._deferred.done(util.bind(this.done, this, e));
         this._deferred.fail(util.bind(this.fail, this, e));
-        
+
     };
 
     /**
      * ajax更新数据完成后触发
      *
      * @public
+     * @param {Object} e 事件对象
      * @param {Object} data ajax返回的数据
      */
     Model.prototype.done = function(e, data) {
         if (data.status !== 0) {
             return ;
         }
-        
-        var data = data.data || {};
+
+        data = data.data || {};
 
         util.mix(this._database, data);
-        
+
         this.fire('change', e);
     };
 
@@ -222,6 +224,7 @@ define(function(require) {
      * 生成model ajax更新时的请求params
      *
      * @public
+     * @return {Object}
      */
     Model.prototype.getParams = function() {
         return util.mix(
@@ -237,6 +240,7 @@ define(function(require) {
      * 设置model ajax更新时的默认参数
      *
      * @public
+     * @param {Object} params ajax更新时的默认参数
      */
     Model.prototype.setParams = function(params) {
         util.mix(
@@ -258,15 +262,17 @@ define(function(require) {
 
         var diff = util.diffObject(query, referrerQuery);
 
+        var i;
+
         if (this.include && this.include.length) {
-            for (var i = 0; i < diff.length; i++) {
+            for (i = 0; i < diff.length; i++) {
                 if (util.inArray(this.include, diff[i]) >= 0) {
                     return true;
                 }
             }
         }
         else if (this.exclude && this.exclude.length) {
-            for (var i = 0; i < diff.length; i++) {
+            for (i = 0; i < diff.length; i++) {
                 if (util.inArray(this.exclude, diff[i]) < 0) {
                     return true;
                 }
@@ -285,6 +291,6 @@ define(function(require) {
      * 给Model添加extend方法
      */
     Model.extend = require('./extend');
-    
+
     return Model;
 });

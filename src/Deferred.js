@@ -6,6 +6,7 @@
  * @file Deferred类实现
  * @author otakustay
  */
+
 define(
     function (require) {
         /* jshint nomen: false */
@@ -110,7 +111,7 @@ define(
                             'exception',
                             {
                                 deferred: original,
-                                args: [ error ],
+                                args: [error],
                                 reason: error
                             }
                         );
@@ -278,6 +279,9 @@ define(
 
         /**
          * @inheritdoc meta.Promise#done
+         *
+         * @param {Function} callback 成功的回调函数
+         * @return {Function}
          */
         Deferred.prototype.done = function (callback) {
             return this.then(callback);
@@ -285,6 +289,9 @@ define(
 
         /**
          * @inheritdoc meta.Promise#fail
+         *
+         * @param {Function} callback 失败的回调函数
+         * @return {Function}
          */
         Deferred.prototype.fail = function (callback) {
             return this.then(null, callback);
@@ -292,6 +299,9 @@ define(
 
         /**
          * @inheritdoc meta.Promise#ensure
+         *
+         * @param {Function} callback ensure回调函数
+         * @return {Function}
          */
         Deferred.prototype.ensure = function (callback) {
             return this.then(callback, callback);
@@ -299,6 +309,10 @@ define(
 
         /**
          * @inheritdoc meta.Promise#then
+         *
+         * @param {Function} done 成功回调函数
+         * @param {Function} fail 失败回调函数
+         * @return {Promise}
          */
         Deferred.prototype.then = function (done, fail) {
             var deferred = new Deferred();
@@ -331,7 +345,6 @@ define(
          *
          * 本方法对参数的方法与`Array.prototyp.concat`相同，任意一个参数是数组则会展开
          *
-         * @param {meta.Promise... | meta.Promise[]...} args 需要组合的对象
          * @return {meta.Promise}
          * @static
          */
@@ -386,7 +399,6 @@ define(
         /**
          * 返回一个已经处于`resolved`状态的{@link meta.Promise}对象
          *
-         * @param {Mixed...} args 用于调用{@link meta.Resolver#resolve}方法的参数
          * @return {meta.Promise}
          * @static
          */
@@ -399,7 +411,6 @@ define(
         /**
          * 返回一个已经处于`rejected`状态的{@link meta.Promise}对象
          *
-         * @param {Mixed...} args 用于调用{@link meta.Resolver#reject}方法的参数
          * @return {meta.Promise}
          * @static
          */

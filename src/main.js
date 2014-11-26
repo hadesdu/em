@@ -2,6 +2,7 @@
  * @file 框架入口文件
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function(require) {
 
     var locator = require('./locator');
