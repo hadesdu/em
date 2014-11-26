@@ -110,10 +110,17 @@ define(function(require) {
     /**
      * 获取当前hash的参数对象
      * 
+     * @param {string=} key 要获取的参数的key
      * @return {Object} 当前hash的参数对象
      */
-    hash.getQuery = function() {
-        return this.parse(window.location.hash);
+    hash.getQuery = function(key) {
+        var query = this.parse(window.location.hash);
+
+        if (key) {
+            return (query[key] ? query[key] : '');
+        }
+
+        return query;
     };
 
     return hash;

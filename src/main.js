@@ -6,6 +6,7 @@ define(function(require) {
 
     var locator = require('./locator');
     var delegate = require('./delegate');
+    var hash = require('./hash');
 
     /**
      * 启动框架
@@ -37,10 +38,20 @@ define(function(require) {
         locator.addQuery(query);
     }
 
+    /**
+     * 获取当前的hash query
+     *
+     * @return {Object}
+     */
+    function getQuery() {
+        return hash.getQuery.apply(hash, arguments);
+    }
+
     return {
         version: '0.1.0',
         start: start,
         stop: stop,
-        addQuery: addQuery
+        addQuery: addQuery,
+        getQuery: getQuery
     };
 });

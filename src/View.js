@@ -2,6 +2,7 @@
  * @file View类
  * @author hades(denghongqi@baidu.com)
  */
+
 define(function(require) {
     var util = require('./util');
     var EventTarget = require('mini-event/EventTarget');
@@ -23,13 +24,13 @@ define(function(require) {
      *     el: $('#main'),    //el为jquery对象，作为view的主元素，提供事件代理
      *
      *     components: [],
-     *     
+     *
      *     ajaxTpl: {    //多个tpl可以传一个数组
      *         key: 'list',    //多个模板时用户前端获取模板，只有单个模版时可不填
      *         tpl: 'car/list'    //模板对应的smarty目录
      *     },
      *
-     *     model: require('./childModel'),    //多个model可传入一个数组     
+     *     model: require('./childModel'),    //多个model可传入一个数组
      *     
      *     events: {    //events为一个map，event handler自动绑定this指针为当前view
      *         'click .btn': function() {
@@ -142,12 +143,18 @@ define(function(require) {
                 return ;
             }
 
-            if (control.setMain && item.selector) {
-                var main = me.$el.find(item.selector);
+            if (!item.selector) {
+                return ;
+            }
 
-                if (main.length) {
-                    control.setMain(main);
-                }
+            var main = me.$el.find(item.selector);
+
+            if (!main.length) {
+                return ;
+            }
+
+            if (control.setMain) {
+                control.setMain(main);
             }
 
             if (control && control.init) {
